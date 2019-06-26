@@ -64,10 +64,12 @@
 
 #include "actuators/esc.hpp"
 #include "actuators/hardpoint.hpp"
+#include "actuators/teste_actuator.hpp"
 #include "sensors/sensor_bridge.hpp"
 
 #include "uavcan_servers.hpp"
 #include "allocator.hpp"
+
 
 #define NUM_ACTUATOR_CONTROL_GROUPS_UAVCAN	4
 
@@ -183,8 +185,11 @@ private:
 	uavcan::Node<>			_node;				///< library instance
 	pthread_mutex_t			_node_mutex;
 	px4_sem_t			_server_command_sem;
+
 	UavcanEscController		_esc_controller;
 	UavcanHardpointController	_hardpoint_controller;
+        UavcanTeste                     _teste_controller;
+        int                             _teste_topic_sub = -1;
 	uavcan::GlobalTimeSyncMaster	_time_sync_master;
 	uavcan::GlobalTimeSyncSlave	_time_sync_slave;
 	uavcan::NodeStatusMonitor	_node_status_monitor;

@@ -68,6 +68,8 @@
 
 #include <uavcan/protocol/param/ExecuteOpcode.hpp>
 
+//HeaderFilesAddedByNiranForAddingError
+
 //todo:The Inclusion of file_server_backend is killing
 // #include <sys/types.h> and leaving OK undefined
 # define OK 0
@@ -79,9 +81,10 @@ UavcanNode *UavcanNode::_instance;
 UavcanNode::UavcanNode(uavcan::ICanDriver &can_driver, uavcan::ISystemClock &system_clock) :
 	CDev(UAVCAN_DEVICE_PATH),
 	_node(can_driver, system_clock, _pool_allocator),
-	_node_mutex(),
+        _node_mutex(),
 	_esc_controller(_node),
 	_hardpoint_controller(_node),
+        _teste_controller(_node),
 	_time_sync_master(_node),
 	_time_sync_slave(_node),
 	_node_status_monitor(_node),
@@ -146,6 +149,7 @@ UavcanNode::~UavcanNode()
 	(void)orb_unsubscribe(_armed_sub);
 	(void)orb_unsubscribe(_test_motor_sub);
 	(void)orb_unsubscribe(_actuator_direct_sub);
+
 
 	// Removing the sensor bridges
 	_sensor_bridges.clear();
@@ -643,6 +647,15 @@ int UavcanNode::init(uavcan::NodeID node_id)
 		return ret;
 	}
 
+         //CANCODEADDEDBYNIRANUSINGUORB
+
+        printf("Init function working till here in UAVCAN.main.cpp");
+        ret = _teste_controller.init();
+        printf("teste_controller ret=%d \n", ret);
+        if(ret<0) {
+            return ret;
+        }
+
 	// Sensor bridges
 	IUavcanSensorBridge::make_all(_node, _sensor_bridges);
 
@@ -739,6 +752,8 @@ void UavcanNode::handle_time_sync(const uavcan::TimerEvent &)
 
 int UavcanNode::run()
 {
+       printf("Checking uavcan sending part here\n");
+
 	(void)pthread_mutex_lock(&_node_mutex);
 
 	// XXX figure out the output count
@@ -804,7 +819,7 @@ int UavcanNode::run()
 
 	update_params();
 
-	int params_sub = orb_subscribe(ORB_ID(parameter_update));
+        int params_sub = orb_subscribe(ORB_ID(parameter_update));
 
 	while (!_task_should_exit) {
 
@@ -968,24 +983,8 @@ int UavcanNode::run()
 		}
 
 		// Check arming state
-		orb_check(_armed_sub, &updated);
+		orb_check(_armed_sub, &updated);		
 
-		if (updated) {
-			orb_copy(ORB_ID(actuator_armed), _armed_sub, &_armed);
-
-			// Update the armed status and check that we're not locked down and motor
-			// test is not running
-			bool set_armed = _armed.armed && !_armed.lockdown && !_armed.manual_lockdown && !_test_in_progress;
-
-			arm_actuators(set_armed);
-
-			if (_armed.soft_stop) {
-				_esc_controller.enable_idle_throttle_when_armed(false);
-
-			} else {
-				_esc_controller.enable_idle_throttle_when_armed(_idle_throttle_when_armed > 0);
-			}
-		}
 	}
 
 	orb_unsubscribe(params_sub);

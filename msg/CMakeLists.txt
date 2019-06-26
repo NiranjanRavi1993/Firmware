@@ -114,6 +114,7 @@ set(msg_files
 	tecs_status.msg
 	telemetry_status.msg
 	test_motor.msg
+	teste_receive.msg
 	timesync_status.msg
 	trajectory_waypoint.msg
 	transponder_report.msg
